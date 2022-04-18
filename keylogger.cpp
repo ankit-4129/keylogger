@@ -106,7 +106,7 @@ std::string getForegroundWindowInfo()
         }
         else{
             prev_fg_win = fg_win;
-            fg_win = "\n[ " + fg_win + " ]\n";
+            fg_win = "\n[ " + fg_win + " ] - ";
             fg_win += "[ " + getLocalTime() + " ]\n";
         }
     }
